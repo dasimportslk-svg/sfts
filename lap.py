@@ -1150,5 +1150,358 @@ def login_window():
                     refresh_files()
 
                 else:
+                                        messagebox.showerror(
+                        "SFTP Error",
+                        error,
+                        parent=login
+                    )
+
+            root.after(
+                0,
+                finish
+            )
+
+        threading.Thread(
+            target=worker,
+            daemon=True
+        ).start()
+
+    connect_button_login = tk.Button(
+        login,
+        text="CONNECT",
+        font=("Arial", 11, "bold"),
+        width=15,
+        command=do_connect
+    )
+
+    connect_button_login.pack(
+        pady=8
+    )
+
+    ip_entry.focus_set()
+
+    login.bind(
+        "<Return>",
+        lambda event: do_connect()
+    )
+
+
+# ============================================================
+# GUI
+# ============================================================
+
+top_frame = tk.Frame(
+    root
+)
+
+top_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+tk.Label(
+    top_frame,
+    text="Laptop IP:"
+).pack(
+    side="left"
+)
+
+ip_top_entry = tk.Entry(
+    top_frame,
+    textvariable=ip_var,
+    width=18
+)
+
+ip_top_entry.pack(
+    side="left",
+    padx=5
+)
+
+connect_button = tk.Button(
+    top_frame,
+    text="CONNECT",
+    command=login_window,
+    width=12
+)
+
+connect_button.pack(
+    side="left",
+    padx=5
+)
+
+connection_status = tk.Label(
+    top_frame,
+    text="Not Connected"
+)
+
+connection_status.pack(
+    side="left",
+    padx=10
+)
+
+
+# ============================================================
+# PATH BAR
+# ============================================================
+
+path_frame = tk.Frame(
+    root
+)
+
+path_frame.pack(
+    fill="x",
+    padx=10,
+    pady=(0, 8)
+)
+
+tk.Label(
+    path_frame,
+    text="Remote Path:"
+).pack(
+    side="left"
+)
+
+path_entry = tk.Entry(
+    path_frame,
+    textvariable=path_var
+)
+
+path_entry.pack(
+    side="left",
+    fill="x",
+    expand=True,
+    padx=5
+)
+
+
+# ============================================================
+# FILE TREE
+# ============================================================
+
+tree_frame = tk.Frame(
+    root
+)
+
+tree_frame.pack(
+    fill="both",
+    expand=True,
+    padx=10
+)
+
+columns = (
+    "name",
+    "type",
+    "size"
+)
+
+tree = ttk.Treeview(
+    tree_frame,
+    columns=columns,
+    show="headings",
+    selectmode="browse"
+)
+
+tree.heading(
+    "name",
+    text="Name"
+)
+
+tree.heading(
+    "type",
+    text="Type"
+)
+
+tree.heading(
+    "size",
+    text="Size"
+)
+
+tree.column(
+    "name",
+    width=500,
+    anchor="w"
+)
+
+tree.column(
+    "type",
+    width=100,
+    anchor="center"
+)
+
+tree.column(
+    "size",
+    width=150,
+    anchor="e"
+)
+
+scrollbar = ttk.Scrollbar(
+    tree_frame,
+    orient="vertical",
+    command=tree.yview
+)
+
+tree.configure(
+    yscrollcommand=scrollbar.set
+)
+
+tree.pack(
+    side="left",
+    fill="both",
+    expand=True
+)
+
+scrollbar.pack(
+    side="right",
+    fill="y"
+)
+
+tree.bind(
+    "<Double-1>",
+    open_selected
+)
+
+
+# ============================================================
+# BUTTON BAR
+# ============================================================
+
+button_frame = tk.Frame(
+    root
+)
+
+button_frame.pack(
+    fill="x",
+    padx=10,
+    pady=10
+)
+
+back_button = tk.Button(
+    button_frame,
+    text="BACK",
+    width=12,
+    command=go_back
+)
+
+back_button.pack(
+    side="left",
+    padx=3
+)
+
+refresh_button = tk.Button(
+    button_frame,
+    text="REFRESH",
+    width=12,
+    command=refresh_files
+)
+
+refresh_button.pack(
+    side="left",
+    padx=3
+)
+
+download_button = tk.Button(
+    button_frame,
+    text="DOWNLOAD",
+    width=15,
+    command=download_file
+)
+
+download_button.pack(
+    side="right",
+    padx=3
+)
+
+
+# ============================================================
+# PROGRESS
+# ============================================================
+
+progress_frame = tk.Frame(
+    root
+)
+
+progress_frame.pack(
+    fill="x",
+    padx=10,
+    pady=(0, 10)
+)
+
+progress_bar = ttk.Progressbar(
+    progress_frame,
+    variable=progress_var,
+    maximum=100,
+    mode="determinate"
+)
+
+progress_bar.pack(
+    side="left",
+    fill="x",
+    expand=True
+)
+
+percent_label = tk.Label(
+    progress_frame,
+    text="0%",
+    width=8
+)
+
+percent_label.pack(
+    side="left"
+)
+
+speed_label = tk.Label(
+    progress_frame,
+    text="Ready",
+    width=15
+)
+
+speed_label.pack(
+    side="left"
+)
+
+
+# ============================================================
+# WINDOW CLOSE
+# ============================================================
+
+def on_close():
+
+    global download_running
+
+    if download_running:
+
+        answer = messagebox.askyesno(
+            "Download Running",
+            "A download is currently running.\n\n"
+            "Close anyway?"
+        )
+
+        if not answer:
+            return
+
+    download_running = False
+
+    disconnect_sftp()
+
+    oled_clear()
+
+    root.destroy()
+
+
+root.protocol(
+    "WM_DELETE_WINDOW",
+    on_close
+)
+
+
+# ============================================================
+# START
+# ============================================================
+
+if OLED_AVAILABLE:
+    oled_idle()
+
+root.mainloop()
 
    
